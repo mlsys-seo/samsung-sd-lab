@@ -2,9 +2,9 @@ import os, sys
 import argparse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import LLMEngine
-from utils import LLMSpecEngine
 
+import importlib
+from utils import LLMEngine
     
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -22,6 +22,7 @@ def parse_args():
     parser.add_argument("--min-output-length", type=int, default=1)
     parser.add_argument("--max-output-length", type=int, default=157)
     parser.add_argument("--use-cuda-graph", action="store_true")
+    parser.add_argument("--problem", type=str, default=None)
     return parser.parse_args()
 
 def check_args(args):
@@ -31,12 +32,16 @@ def check_args(args):
     assert args.world_size == args.tensor_parallel_size*args.pipeline_parallel_size, f"world_size {args.world_size} must be equal to tensor_parallel_size {args.tensor_parallel_size} * pipeline_parallel_size {args.pipeline_parallel_size}"
     assert args.batch_size == 1, f"batch_size {args.batch_size} must be 1 for single-token inference"
 
-
 if __name__ == '__main__':
     args = parse_args()
     check_args(args)
-
+    print(f"Problem {args.problem} Execute")
     if args.draft_model is not None:
+        if args.problem:
+            module_name = f"utils.spec_engine_{args.problem}"
+            LLMSpecEngine = getattr(importlib.import_module(module_name), "LLMSpecEngine")
+        else:
+            from utils.spec_engine import LLMSpecEngine
         engine = LLMSpecEngine(args)
     else:
         engine = LLMEngine(args)
@@ -53,7 +58,6 @@ if __name__ == '__main__':
     ], tokenize=False, add_generation_prompt=True)
 
     output_text, stats = engine.generate(prompt_text)
-    # print(output_text)
     print(f"overall latency : {stats['overall_latency']:.2f} secs")
     print(f"time to output token : {stats['time_to_output_token']:.2f} ms")
     print(f"prefill throughput : {stats['prefill_throughput']:.2f} tokens/second")

@@ -9,12 +9,17 @@ import transformers
 from transformers import AutoTokenizer
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import ModelRunner, DistributedSampler
+from utils import DistributedSampler
 
             
 class LLMEngine:
     def __init__(self, args):
+        if args.problem in ['C', 'D']:
+            from utils.model_runner_C import ModelRunner
+        else:
+            from utils import ModelRunner
         # set seed
+        import pdb; pdb.set_trace()
         torch.manual_seed(args.seed)
         transformers.set_seed(args.seed)
 
