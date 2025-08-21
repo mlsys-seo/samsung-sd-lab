@@ -31,7 +31,7 @@ class LLMSpecEngine(LLMEngine):
         return accept_token_idx
 
     
-    def step_problem(self, input_ids, num_ouput_logits=1):
+    def step(self, input_ids, num_ouput_logits=1):
         if DEBUG:
             print("-------------------------------- step --------------------------------")
 
@@ -78,38 +78,3 @@ class LLMSpecEngine(LLMEngine):
         return accept_token_idx
 
     
-    def step(self, input_ids, num_ouput_logits=1):
-        if DEBUG:
-            print("-------------------------------- step --------------------------------")
-
-        # run draft model for {self.num_draft_tokens} times
-        draft_input_ids = input_ids.clone()
-        for draft_idx in range(self.num_draft_tokens):
-            draft_logits = self.draft_model_runner.run_model(input_ids=draft_input_ids, num_output_logits=1)
-            draft_token = self.sampler_manager.sample_and_distribute(draft_logits)
-            draft_input_ids = draft_token
-            self.draft_tokens_buffer[0, draft_idx].copy_(draft_token[0,-1])
-
-        
-        # run target model
-        target_input_ids = torch.cat([input_ids, self.draft_tokens_buffer], dim=1)
-        logits = self.model_runner.run_model(input_ids=target_input_ids, num_output_logits=self.num_draft_tokens+1)
-        target_tokens = self.sampler_manager.sample_and_distribute(logits)
-
-
-        # verify
-        num_accepted_tokens = self.get_accept_token_idx(self.draft_tokens_buffer.cpu(), target_tokens.cpu())
-        num_emitted_tokens = num_accepted_tokens + 1
-        emitted_tokens = target_tokens[:, :num_emitted_tokens]
-
-
-        if DEBUG:
-            print(f"          draft_tokens:\t {self.draft_tokens_buffer.cpu()}")
-            print(f"         target_tokens:\t {target_tokens.cpu()}")
-            print(f"   num_accepted_tokens:\t {num_accepted_tokens}")
-            print(f"    num_emitted_tokens:\t {num_emitted_tokens}")
-            print(f"        emitted_tokens:\t {emitted_tokens.cpu()}")
-            print("")
-            input()
-
-        return emitted_tokens

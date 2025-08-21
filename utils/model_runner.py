@@ -16,10 +16,6 @@ class ExpendedStaticCache(StaticCache):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def cutoff_problem(self, num_tokens_to_cutoff):
-        # TODO: Problem C :: implement this
-        pass
-    
     def cutoff(self, num_tokens_to_cutoff):
         # third dim = token dimension
         seq_length = self.get_seq_length()

@@ -34,7 +34,7 @@ docker run -it --rm \
   --ipc=host \
   --net=host \
   --name "${CONTAINER_NAME}" \
-  -v "${HOST_WORKDIR}":/workspace \
+  -v ${PWD}:/workspace/sd-lab \
   "${IMAGE}" \
   bash
 

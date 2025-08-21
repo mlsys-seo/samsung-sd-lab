@@ -7,6 +7,7 @@ export CUDA_LAUNCH_BLOCKING=0
 MODEL_NAME="Qwen/Qwen2.5-14B-Instruct"
 DRAFT_MODEL_NAME="Qwen/Qwen2.5-0.5B-Instruct"
 MAX_OUTPUT_LENGTH=256
+PROBLEM="B"
 
 # nsys profile --trace=cuda,nvtx --cuda-graph=node -o ./single --force-overwrite true \
 python run_test.py \
@@ -16,8 +17,8 @@ python run_test.py \
     --seed 1234 \
     --min-output-length 1 \
     --max-output-length $MAX_OUTPUT_LENGTH \
-    --use-cuda-graph \
-    --problem B
+    --use-cuda-graph
+
 # # nsys profile --trace=cuda,nvtx --cuda-graph=node -o ./single --force-overwrite true \
 python run_test.py \
     --model $MODEL_NAME \
@@ -29,4 +30,4 @@ python run_test.py \
     --min-output-length 1 \
     --max-output-length $MAX_OUTPUT_LENGTH \
     --use-cuda-graph \
-    --problem B
+    --problem $PROBLEM

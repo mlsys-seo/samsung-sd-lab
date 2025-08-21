@@ -16,20 +16,9 @@ class ExpendedStaticCache(StaticCache):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def cutoff_problem(self, num_tokens_to_cutoff):
+    def cutoff(self, num_tokens_to_cutoff):
         # TODO: Problem C :: implement this
         pass
-    
-    def cutoff(self, num_tokens_to_cutoff):
-        # third dim = token dimension
-        seq_length = self.get_seq_length()
-        
-        fill_zero_start_idx = seq_length - num_tokens_to_cutoff
-        fill_zero_end_idx = seq_length
-
-        for layer in self.layers:
-            layer.keys[:, :, fill_zero_start_idx:fill_zero_end_idx].zero_()
-            layer.values[:, :, fill_zero_start_idx:fill_zero_end_idx].zero_()
 
 
 
@@ -97,14 +86,7 @@ class ModelRunner:
         if self.model is not None:
             if not "opt" in self.model_name_or_path.lower():
                 # TODO: Problem C
-                # self.past_key_values = StaticCache(
-                #     config=self.model_config,
-                #     batch_size=1,
-                #     max_cache_len=self.model_config.max_position_embeddings,
-                #     dtype=self.dtype,
-                #     device=self.device
-                # )
-                self.past_key_values = ExpendedStaticCache(
+                self.past_key_values = StaticCache(
                     config=self.model_config,
                     batch_size=1,
                     max_cache_len=self.model_config.max_position_embeddings,

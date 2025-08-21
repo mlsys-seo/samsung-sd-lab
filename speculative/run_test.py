@@ -35,13 +35,23 @@ def check_args(args):
 if __name__ == '__main__':
     args = parse_args()
     check_args(args)
+
     print(f"Problem {args.problem} Execute")
+
     if args.draft_model is not None:
-        if args.problem:
-            module_name = f"utils.spec_engine_{args.problem}"
-            LLMSpecEngine = getattr(importlib.import_module(module_name), "LLMSpecEngine")
+        if args.problem == "A":
+            # module_name = f"utils.spec_engine_{args.problem}"
+            # LLMSpecEngine = getattr(importlib.import_module(module_name), "LLMSpecEngine")
+            from utils.spec_engine_A import LLMSpecEngine
+        elif args.problem == "B":
+            from utils.spec_engine_B import LLMSpecEngine
+        elif args.problem == "C":
+            from utils.spec_engine_B import LLMSpecEngine
+        elif args.problem == "D":
+            from utils.spec_engine_D import LLMSpecEngine
         else:
-            from utils.spec_engine import LLMSpecEngine
+            raise ValueError(f"Problem {args.problem} is not supported")
+
         engine = LLMSpecEngine(args)
     else:
         engine = LLMEngine(args)

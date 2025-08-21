@@ -12,7 +12,7 @@ PROFILE=""   # "A" | "B" | "C" | "D" | "E"
 ########################################
 # 2) Common settings
 ########################################
-IMAGE="sd-lab:v0"
+IMAGE="nvcr.io/nvidia/pytorch:23.10-py3"
 WORKDIR="/workspace"
 MEM_LIMIT="32g"
 SHM_SIZE="16g"
@@ -51,12 +51,12 @@ CMD=(docker run -it --rm
   --name "${NAME}"
   --gpus "device=${GPU_HOST_ID}"
   -e CUDA_VISIBLE_DEVICES=0
-  -e TOKENIZERS_PARALLELISM=false
   --memory="${MEM_LIMIT}"
   --shm-size="${SHM_SIZE}"
   ${IPC_FLAG}
   ${ULIMIT_FLAG}
   -w "${WORKDIR}"
+  -v ${PWD}:/workspace/sd-lab \
   "${IMAGE}"
   bash
 )
