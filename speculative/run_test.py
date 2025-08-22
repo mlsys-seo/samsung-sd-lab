@@ -50,8 +50,7 @@ if __name__ == '__main__':
         elif args.problem == "D":
             from utils.spec_engine_D import LLMSpecEngine
         else:
-            raise ValueError(f"Problem {args.problem} is not supported")
-
+            from utils.spec_engine import LLMSpecEngine
         engine = LLMSpecEngine(args)
     else:
         engine = LLMEngine(args)
@@ -72,3 +71,7 @@ if __name__ == '__main__':
     print(f"time to output token : {stats['time_to_output_token']:.2f} ms")
     print(f"prefill throughput : {stats['prefill_throughput']:.2f} tokens/second")
     print(f"generation throughput : {stats['generation_throughput']:.2f} tokens/second")
+
+    if args.draft_model is not None:
+        print(f"mean_accaptance_length: {stats['mean_accaptance_length']} tokens/iter")
+        print(f"accaptance_rate: {stats['accaptance_rate']}")

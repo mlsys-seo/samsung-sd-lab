@@ -1,4 +1,7 @@
 import torch
+import torch.distributed as dist
+
+import numpy as np
 
 from utils import ModelRunner
 from utils import LLMEngine
@@ -101,3 +104,76 @@ class LLMSpecEngine(LLMEngine):
             input()
 
         return emitted_tokens
+
+    
+    def generate(self, prompt):
+        prompt_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
+        input_ids = prompt_ids.clone()
+        output_ids = torch.tensor([], dtype=torch.long, device=self.device)
+        stop_flag = False
+
+        torch.cuda.synchronize()
+        
+        start_time = torch.cuda.Event(enable_timing=True)
+        end_time = torch.cuda.Event(enable_timing=True)
+        record_time = []
+        time_to_first_token = 0
+        accept_len_list = []
+        torch.cuda.synchronize()
+        
+        if dist.is_initialized():
+            dist.barrier()
+        
+        print(f"============================================\n")
+        if self.args.local_rank == 0:
+            print(prompt, end='', flush=True)
+
+        while not stop_flag:
+            start_time.record()
+
+            tokens = self.step(input_ids)
+
+            if self.sampler_manager.should_sample:
+                output_ids, stop_flag = self.sampler_manager.post_process(tokens, output_ids)
+            
+            stop_flag = self.sampler_manager.broadcast_stop_flag(stop_flag, self.device)
+            input_ids = tokens[:, -1:]
+            
+            end_time.record()
+            torch.cuda.synchronize()
+            if time_to_first_token == 0:
+                time_to_first_token = start_time.elapsed_time(end_time)
+            else:
+                record_time.append(start_time.elapsed_time(end_time))
+            
+            if self.args.local_rank == 0:
+                # new_tokens = tokens[0, -1].cpu().numpy()
+                new_tokens = tokens[0,:].cpu().numpy()
+                accept_len_list.append(new_tokens.shape[0])
+                print(self.tokenizer.decode(new_tokens), end='', flush=True)
+        
+        torch.cuda.synchronize()
+        print(f"\n============================================\n")
+        if dist.is_initialized():
+            dist.barrier()
+        
+        if self.sampler_manager.should_output_results():
+            final_output = torch.cat([prompt_ids, output_ids.view(1, -1)], dim=1)
+            record_time = record_time[10:] # remove first 10 records for graph capture warmup
+        
+        num_prefill_tokens = prompt_ids.shape[1]
+        num_output_tokens = output_ids.shape[0]
+        generation_time = sum(record_time)
+        overall_latency = time_to_first_token + sum(record_time)
+        mean_accaptance_length = np.mean(accept_len_list)
+        accaptance_rate = mean_accaptance_length / self.num_draft_tokens
+
+        stats = {
+            "overall_latency": overall_latency / 1e3,
+            "time_to_output_token": generation_time / num_output_tokens,
+            "prefill_throughput": num_prefill_tokens / (time_to_first_token / 1e3),
+            "generation_throughput": num_output_tokens / (generation_time / 1e3),
+            "mean_accaptance_length": mean_accaptance_length,
+            "accaptance_rate": accaptance_rate
+        }
+        return final_output, stats

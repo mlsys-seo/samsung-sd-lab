@@ -4,7 +4,7 @@ set -euo pipefail
 ########################################
 # 1) Select profile
 ########################################
-PROFILE="E"   # "A" | "B" | "C" | "D" | "E"
+PROFILE="D"   # "A" | "B" | "C" | "D" | "E"
 
 
 
@@ -12,7 +12,8 @@ PROFILE="E"   # "A" | "B" | "C" | "D" | "E"
 ########################################
 # 2) Common settings
 ########################################
-IMAGE="nvcr.io/nvidia/pytorch:23.10-py3"
+# IMAGE="nvcr.io/nvidia/pytorch:23.10-py3"
+IMAGE="dhlee625/lora-lab:v0"
 WORKDIR="/workspace"
 MEM_LIMIT="32g"
 SHM_SIZE="16g"
@@ -57,6 +58,7 @@ CMD=(docker run -d -it --rm
   ${ULIMIT_FLAG}
   -w "${WORKDIR}"
   -v ${PWD}:/workspace/sd-lab \
+  -v ${HOME}/cache:/workspace/cache \
   "${IMAGE}"
   bash
 )

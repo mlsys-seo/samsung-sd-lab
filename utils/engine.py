@@ -19,7 +19,6 @@ class LLMEngine:
         else:
             from utils import ModelRunner
         # set seed
-        import pdb; pdb.set_trace()
         torch.manual_seed(args.seed)
         transformers.set_seed(args.seed)
 
