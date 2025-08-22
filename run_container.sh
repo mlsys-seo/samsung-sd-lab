@@ -4,7 +4,7 @@ set -euo pipefail
 ########################################
 # 1) Select profile
 ########################################
-PROFILE=""   # "A" | "B" | "C" | "D" | "E"
+PROFILE="E"   # "A" | "B" | "C" | "D" | "E"
 
 
 
@@ -47,7 +47,7 @@ ULIMIT_FLAG=""; [[ "${USE_ULIMIT_MEMLOCK}" -eq 1 ]] && ULIMIT_FLAG="--ulimit mem
 ########################################
 # 5) docker run
 ########################################
-CMD=(docker run -it --rm
+CMD=(docker run -d -it --rm
   --name "${NAME}"
   --gpus "device=${GPU_HOST_ID}"
   -e CUDA_VISIBLE_DEVICES=0
