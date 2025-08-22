@@ -5,7 +5,7 @@ cache_dir = "/workspace/cache"
 
 model_names = [
     "Qwen/Qwen2.5-0.5B-Instruct",
-    "Qwen/Qwen2.5-14B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
 ]
 
 for model_name in model_names:
